@@ -1,16 +1,29 @@
 # Copyright (C) 2019-2021 Cyface GmbH - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential.
+#
+# Pulls the required artifacts to build and publish the Docker images.
+#
+# author: Armin Schnabel
+# version: 1.0.0
+# since: 1.0.0
 name: Publish docker images to Github Packages
 
 on:
   push:
     tags:
       - '*'
+    branches:
+      - main
+      - release
+  pull_request:
+    branches:
+      - main
+      - release
 
 # Specify JARs version here.
 env:
-  JARS_VERSION: '5.3.1'
+  JARS_VERSION: '6.0.0'
 
 jobs:
   publish:
@@ -36,9 +49,13 @@ jobs:
         registry: docker.pkg.github.com
         tag_names: true
         context: collector
+        # only push the Docker images if this is a release (to test workflow in PRs)
+        no_push: ${{ !(github.event_name == 'push' && contains(github.ref, 'refs/tags/')) }}
 
     # --------------------- Mark Release-Tag on Github ---------------------
-    - uses: actions/create-release@v1
+    - name: Mark release on Github
+      if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
       id: create_release
       with:
         tag_name: ${{ github.ref }}
