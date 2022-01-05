@@ -33,10 +33,11 @@ WORKDIR /app
 COPY collector-fat.jar /app
 COPY entrypoint.sh /app
 RUN chmod +x /app/entrypoint.sh
+RUN mkdir file-uploads
 
 # Adjust permissions
 # Cannot create logs folder with the correct permissions here as the permissions will be overwritten [DAT-797]
-RUN chown user:user entrypoint.sh collector-fat.jar
+RUN chown user:user entrypoint.sh collector-fat.jar file-uploads
 
 # Make port 8080 available to the world outside the container
 EXPOSE 8080
