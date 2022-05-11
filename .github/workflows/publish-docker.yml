@@ -1,13 +1,15 @@
-# Copyright (C) 2019-2021 Cyface GmbH - All Rights Reserved
+# Copyright (C) 2019-2022 Cyface GmbH - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential.
 #
 # Pulls the required artifacts to build and publish the Docker images.
 #
 # author: Armin Schnabel
-# version: 1.0.0
+# version: 1.0.2
 # since: 1.0.0
-name: Publish docker images to Github Packages
+#
+# Version: 2.1.2
+name: (Test) Publish docker images
 
 on:
   push:
@@ -23,7 +25,7 @@ on:
 
 # Specify JARs version here.
 env:
-  JARS_VERSION: '6.3.1'
+  JARS_VERSION: '6.6.0'
 
 jobs:
   publish:
@@ -37,10 +39,10 @@ jobs:
       run: |
         wget --user ${{ secrets.GH_PACKAGES_READ_ACCOUNT }} --password ${{ secrets.GH_PACKAGES_READ_TOKEN }} \
           https://maven.pkg.github.com/cyface-de/data-collector/de/cyface/collector/${{ env.JARS_VERSION }}/collector-${{ env.JARS_VERSION }}-all.jar \
-          -O collector-fat.jar
-        mv collector-fat.jar collector/collector-fat.jar
+          -O collector-all.jar
+        mv collector-all.jar collector/collector-all.jar
 
-    - name: collector - Publish Docker Image
+    - name: collector - (Test) Publish Docker Image
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: cyface-de/collector-docker/collector-docker
