@@ -1,4 +1,4 @@
-# Copyright 2018-2021 Cyface GmbH
+# Copyright 2018-2022 Cyface GmbH
 # 
 # This file is part of the Cyface Data Collector.
 # 
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with the Cyface Data Collector. If not, see <http://www.gnu.org/licenses/>.
 #
-# Version 1.0.0
+# Version 1.0.1
 
 # Use the official JDK Repo for version 11 as target (use slim version to remove all UI stuff, and since we do only need to run software, we just use the JRE).
 FROM openjdk:11-jre-slim
@@ -30,14 +30,14 @@ RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
 # Set the working directory to /app
 WORKDIR /app
 
-COPY collector-fat.jar /app
+COPY collector-all.jar /app
 COPY entrypoint.sh /app
 RUN chmod +x /app/entrypoint.sh
 RUN mkdir file-uploads
 
 # Adjust permissions
 # Cannot create logs folder with the correct permissions here as the permissions will be overwritten [DAT-797]
-RUN chown user:user entrypoint.sh collector-fat.jar file-uploads
+RUN chown user:user entrypoint.sh collector-all.jar file-uploads
 
 # Make port 8080 available to the world outside the container
 EXPOSE 8080

@@ -16,10 +16,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with the Cyface Data Collector.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Version 1.2.0
+# Version 1.2.1
 
 DEFAULT_API_PORT="8081"
-JAR_FILE="collector-fat.jar"
+JAR_FILE="collector-all.jar"
 LOG_FILE="/app/logs/collector-out.log"
 SERVICE_NAME="Cyface Collector API"
 
