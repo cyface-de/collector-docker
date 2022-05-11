@@ -5,7 +5,7 @@
 # Pulls the required artifacts to build and publish the Docker images.
 #
 # author: Armin Schnabel
-# version: 1.0.1
+# version: 1.0.2
 # since: 1.0.0
 name: (Test) Publish docker images
 
@@ -23,7 +23,7 @@ on:
 
 # Specify JARs version here.
 env:
-  JARS_VERSION: '6.3.1'
+  JARS_VERSION: '6.6.0'
 
 jobs:
   publish:
@@ -37,8 +37,8 @@ jobs:
       run: |
         wget --user ${{ secrets.GH_PACKAGES_READ_ACCOUNT }} --password ${{ secrets.GH_PACKAGES_READ_TOKEN }} \
           https://maven.pkg.github.com/cyface-de/data-collector/de/cyface/collector/${{ env.JARS_VERSION }}/collector-${{ env.JARS_VERSION }}-all.jar \
-          -O collector-fat.jar
-        mv collector-fat.jar collector/collector-fat.jar
+          -O collector-all.jar
+        mv collector-all.jar collector/collector-all.jar
 
     - name: collector - (Test) Publish Docker Image
       uses: elgohr/Publish-Docker-Github-Action@master
