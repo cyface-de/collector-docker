@@ -18,7 +18,7 @@
 #
 # Version 1.2.1
 
-DEFAULT_API_PORT="8081"
+DEFAULT_API_PORT="8080"
 JAR_FILE="collector-all.jar"
 LOG_FILE="/app/logs/collector-out.log"
 SERVICE_NAME="Cyface Collector API"
