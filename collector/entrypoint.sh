@@ -30,8 +30,7 @@ main() {
   loadMongoParameters
   loadCollectorParameters
   loadConfig
-  waitForDatabase "mongo-data"
-  waitForDatabase "mongo-user"
+  waitForDatabase "mongo"
   startApi
 }
 
@@ -78,18 +77,6 @@ loadApiParameters() {
   fi
 }
 
-loadMongoParameters() {
-  if [ -z "$MONGO_INITDB_ROOT_USERNAME" ]; then
-      echo "Unable to find MONGO_INITDB_ROOT_USERNAME. Please set the environment variable to an appropriate value! API will not start!"
-      exit 1
-  fi
-  if [ -z "$MONGO_INITDB_ROOT_PASSWORD" ]; then
-      echo "Unable to find MONGO_INITDB_ROOT_PASSWORD. Please set the environment variable to an appropriate value! API will not start!"
-      exit 1
-  fi
-  MONGO_USER_CONNECTION_STRING="mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo-user:27017"
-}
-
 loadCollectorParameters() {
   # JWT Expiration time
   if [ -z $JWT_EXPIRATION_TIME_SECONDS ]; then
@@ -129,14 +116,14 @@ loadConfig() {
       \"jwt.private\":\"$JWT_PRIVATE_KEY_FILE_PATH\",\
       \"jwt.public\":\"$JWT_PUBLIC_KEY_FILE_PATH\",\
       \"mongo.userdb\":{\
-          \"db_name\":\"cyface-user\",\
-          \"connection_string\":\"$MONGO_USER_CONNECTION_STRING\",\
-          \"data_source_name\":\"cyface-user\"\
+          \"db_name\":\"cyface\",\
+          \"connection_string\":\"mongodb://mongo:27017\",\
+          \"data_source_name\":\"cyface\"\
       },\
       \"mongo.datadb\":{\
-          \"db_name\":\"cyface-data\",\
-          \"connection_string\":\"mongodb://mongo-data:27017\",\
-          \"data_source_name\":\"cyface-data\"\
+          \"db_name\":\"cyface\",\
+          \"connection_string\":\"mongodb://mongo:27017\",\
+          \"data_source_name\":\"cyface\"\
       },\
       \"http.port\":$CYFACE_API_PORT,\
       \"http.host\":\"$CYFACE_API_HOST\",\
