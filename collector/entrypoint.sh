@@ -27,7 +27,6 @@ main() {
   loadJwtParameters
   loadSaltParameters
   loadApiParameters
-  loadMongoParameters
   loadCollectorParameters
   loadConfig
   waitForDatabase "mongo"
