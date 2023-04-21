@@ -80,6 +80,34 @@ loadCollectorParameters() {
 
   echo "Setting JWT token expiration time to $JWT_EXPIRATION_TIME_SECONDS seconds."
 
+  # Upload Expiration time
+  if [ -z $UPLOAD_EXPIRATION_TIME_MILLIS ]; then
+    UPLOAD_EXPIRATION_TIME_MILLIS="60000"
+  fi
+
+  echo "Setting Upload expiration time to $UPLOAD_EXPIRATION_TIME_MILLIS ms."
+
+  # Measurement payload limit
+  if [ -z $MEASUREMENT_PAYLOAD_LIMIT_BYTES ]; then
+    MEASUREMENT_PAYLOAD_LIMIT_BYTES="104857600"
+  fi
+
+  echo "Setting Measurement payload limit to $MEASUREMENT_PAYLOAD_LIMIT_BYTES Bytes."
+
+  # Storage type
+  if [ -z $STORAGE_TYPE ]; then
+    STORAGE_TYPE="gridfs"
+  fi
+
+  echo "Setting storage type to $STORAGE_TYPE"
+
+  # Storage uploads folder
+  if [ -z $STORAGE_UPLOADS_FOLDER ]; then
+    STORAGE_UPLOADS_FOLDER="file-uploads"
+  fi
+
+  echo "Setting storage uploads-folder to $STORAGE_UPLOADS_FOLDER"
+
   # Management API
   if [ -z $CYFACE_MANAGEMENT_PORT ]; then
     CYFACE_MANAGEMENT_PORT="13371"
@@ -121,6 +149,12 @@ loadConfig() {
       \"http.endpoint\":\"$CYFACE_API_ENDPOINT\",\
       $SALT_PARAMETER,\
       \"jwt.expiration\":$JWT_EXPIRATION_TIME_SECONDS,\
+	    \"upload.expiration\":$UPLOAD_EXPIRATION_TIME_MILLIS,\
+	    \"measurement.payload.limit\":$MEASUREMENT_PAYLOAD_LIMIT_BYTES,\
+      \"storage-type\":{\
+          \"type\":\"$STORAGE_TYPE\",\
+          \"uploads-folder\":\"$STORAGE_UPLOADS_FOLDER\"\
+      },\
       \"http.port.management\":$CYFACE_MANAGEMENT_PORT,\
       \"admin.user\":\"$ADMIN_USER\",\
       \"admin.password\":\"$ADMIN_PASSWORD\",\
