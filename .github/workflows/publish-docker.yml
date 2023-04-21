@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2022 Cyface GmbH - All Rights Reserved
+# Copyright (C) 2019-2023 Cyface GmbH - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential.
 #
@@ -7,32 +7,28 @@
 # author: Armin Schnabel
 # version: 1.0.3
 # since: 1.0.0
-#
-# Release: 2.1.14
 name: (Test) Publish docker images
 
 on:
   push:
     tags:
-      - '*'
+      - '[0-9]+.[0-9]+.[0-9]+*'
     branches:
       - main
-      - release
   pull_request:
     branches:
       - main
-      - release
 
 # Specify JARs version here.
 env:
-  JARS_VERSION: '6.10.3'
+  JARS_VERSION: '6.11.0'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     # --------------------- Data-Collector ---------------------
     - name: data-collector - Download JAR

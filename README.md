@@ -4,7 +4,7 @@ Before you release a new version make sure you:
 
 To release a new version:
 
-* Use the default branching model
-* Increase the version in `.github/workflows/publish-docker.yml`
-* Create and push a new tag
-* Wait until the CI automatically builds & publishes the Docker Images and marks the tags as a release in Github
+See https://github.com/cyface-de/data-collector#release-a-new-version[Cyface Collector Readme]
+
+* Just tag the release and push the tag to Github
+* After pushing the release tag to Github the CI automatically builds the artifacts and marks the release on Github
