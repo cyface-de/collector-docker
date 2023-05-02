@@ -21,7 +21,7 @@ on:
 
 # Specify JARs version here.
 env:
-  JARS_VERSION: '6.11.0'
+  JARS_VERSION: '6.11.1'
 
 jobs:
   publish:
