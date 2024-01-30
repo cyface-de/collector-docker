@@ -21,7 +21,7 @@ on:
 
 # Specify JARs version here.
 env:
-  JARS_VERSION: '7.0.1'
+  JARS_VERSION: '7.1.0-alpha2' # FIXME
 
 jobs:
   publish:
