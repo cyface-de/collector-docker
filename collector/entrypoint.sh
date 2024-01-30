@@ -94,17 +94,60 @@ loadCollectorParameters() {
 
   # Storage type
   if [ -z $STORAGE_TYPE ]; then
-    STORAGE_TYPE="gridfs"
+    echo "Unable to find Storage Type. Please set the environment variable STORAGE_TYPE to an appropriate value! API will not start!"
+    exit 1
   fi
 
-  echo "Setting storage type to $STORAGE_TYPE"
+  # GridFS Storage Configuration
+  if [ "$STORAGE_TYPE" == "gridfs" ]; then
 
-  # Storage uploads folder
-  if [ -z $STORAGE_UPLOADS_FOLDER ]; then
-    STORAGE_UPLOADS_FOLDER="file-uploads"
+    if [ -z "$STORAGE_UPLOADS_FOLDER" ]; then
+      echo "Unable to find Storage Uploads Folder. Please set the environment variable STORAGE_UPLOADS_FOLDER to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    STORAGE_CONFIGURATION="{\
+      \"type\":\"$STORAGE_TYPE\",\
+      \"uploads-folder\":\"$STORAGE_UPLOADS_FOLDER\"\
+    }"
+
+  # Google Cloud Storage Configuration
+  elif [ "$STORAGE_TYPE" == "google" ]; then
+
+    if [ -z "$STORAGE_PROJECT_IDENTIFIER" ]; then
+      echo "Unable to find Storage Project Identifier. Please set the environment variable STORAGE_PROJECT_IDENTIFIER to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    if [ -z "$STORAGE_BUCKET_NAME" ]; then
+      echo "Unable to find Storage Bucket Name. Please set the environment variable STORAGE_BUCKET_NAME to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    if [ -z "$STORAGE_CREDENTIALS_FILE" ]; then
+      echo "Unable to find Storage Credentials File. Please set the environment variable STORAGE_CREDENTIALS_FILE to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    if [ -z "$STORAGE_COLLECTION_NAME" ]; then
+      echo "Unable to find Storage Collection Name. Please set the environment variable STORAGE_COLLECTION_NAME to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    STORAGE_CONFIGURATION="{\
+      \"type\":\"$STORAGE_TYPE\",\
+      \"project-identifier\":\"$STORAGE_PROJECT_IDENTIFIER\",\
+      \"bucket-name\":\"$STORAGE_BUCKET_NAME\",\
+      \"credentials-file\":\"$STORAGE_CREDENTIALS_FILE\",\
+      \"collection-name\":\"$STORAGE_COLLECTION_NAME\"\
+    }"
+
+  else
+    echo "Unsupported Storage Type $STORAGE_TYPE. Please set the environment variable to an appropriate value! API will not start!"
+    exit 1
   fi
-
-  echo "Setting storage uploads-folder to $STORAGE_UPLOADS_FOLDER"
+    
+  echo "Setting storage configuration to $STORAGE_CONFIGURATION"
 
   # Monitoring
   if [ -z $METRICS_ENABLED ]; then
@@ -128,10 +171,7 @@ loadConfig() {
       \"metrics.enabled\":$METRICS_ENABLED,\
 	    \"upload.expiration\":$UPLOAD_EXPIRATION_TIME_MILLIS,\
 	    \"measurement.payload.limit\":$MEASUREMENT_PAYLOAD_LIMIT_BYTES,\
-      \"storage-type\":{\
-          \"type\":\"$STORAGE_TYPE\",\
-          \"uploads-folder\":\"$STORAGE_UPLOADS_FOLDER\"\
-      },\
+      \"storage-type\":$STORAGE_CONFIGURATION,\
       \"auth-type\":\"$CYFACE_AUTH_TYPE\",
       \"oauth.callback\":\"$CYFACE_OAUTH_CALLBACK\",\
       \"oauth.client\":\"$CYFACE_OAUTH_CLIENT\",\
