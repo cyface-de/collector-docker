@@ -21,7 +21,6 @@
 
 DEFAULT_API_PORT="8080"
 JAR_FILE="collector-all.jar"
-LOG_FILE="/app/logs/collector-out.log"
 SERVICE_NAME="Cyface Collector API"
 
 main() {
@@ -34,6 +33,10 @@ main() {
 }
 
 loadApiParameters() {
+  if [ -z "$CYFACE_API_STD_OUT_FILE" ]; then
+    CYFACE_API_STD_OUT_FILE="/app/logs/collector-out.log"
+  fi
+
   if [ -z "$CYFACE_API_PORT" ]; then
     CYFACE_API_PORT=$DEFAULT_API_PORT
   fi
@@ -216,7 +219,7 @@ startApi() {
       -Dlogback.configurationFile=/app/logback.xml \
       -jar $JAR_FILE \
       -conf "$CONFIG" \
-      &> $LOG_FILE
+      &> $CYFACE_API_STD_OUT_FILE
   echo "API started or failed. Checking logs might give more insights."
 }
 
