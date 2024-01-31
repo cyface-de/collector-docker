@@ -1,4 +1,4 @@
-# Copyright 2018-2022 Cyface GmbH
+# Copyright 2018-2024 Cyface GmbH
 # 
 # This file is part of the Cyface Data Collector.
 # 
@@ -15,10 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with the Cyface Data Collector. If not, see <http://www.gnu.org/licenses/>.
 #
-# Version 1.0.1
+# Version 1.0.2
 
-# Use the official JDK Repo for version 11 as target (use slim version to remove all UI stuff, and since we do only need to run software, we just use the JRE).
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:17-jre
 MAINTAINER Cyface GmbH <mail@cyface.de>
 
 # Create user. Unproblematic default id (wikipedia.org/wiki/User_identifier)
