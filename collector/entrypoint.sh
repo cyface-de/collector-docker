@@ -29,7 +29,7 @@ main() {
   loadApiParameters
   loadCollectorParameters
   loadConfig
-  waitForDatabase "mongo"
+  waitForDependency "mongo" 27017
   startApi
 }
 
@@ -43,7 +43,8 @@ loadApiParameters() {
   fi
 
   if [ -z $CYFACE_API_ENDPOINT ]; then
-    CYFACE_API_ENDPOINT="/api/v4/"
+    echo "Unable to find API Endpoint. Please set the environment variable CYFACE_API_ENDPOINT to an appropriate value! API will not start!"
+    exit 1
   fi
 }
 
@@ -59,8 +60,8 @@ loadAuthParameters() {
   fi
 
   if [ -z CYFACE_OAUTH_SECRET ]; then
-      echo "Unable to find OAuth client secret. Please set the environment variable CYFACE_OAUTH_SECRET to an appropriate value! API will not start!"
-      exit 1
+    echo "Unable to find OAuth client secret. Please set the environment variable CYFACE_OAUTH_SECRET to an appropriate value! API will not start!"
+    exit 1
   fi
 
   if [ -z "$CYFACE_OAUTH_SITE" ]; then
