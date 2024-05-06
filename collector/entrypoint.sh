@@ -44,11 +44,6 @@ loadApiParameters() {
   if [ -z "$CYFACE_API_HOST" ]; then
     CYFACE_API_HOST="localhost"
   fi
-
-  if [ -z $CYFACE_API_ENDPOINT ]; then
-    echo "Unable to find API Endpoint. Please set the environment variable CYFACE_API_ENDPOINT to an appropriate value! API will not start!"
-    exit 1
-  fi
 }
 
 loadAuthParameters() {
@@ -171,7 +166,6 @@ loadConfig() {
       },\
       \"http.port\":$CYFACE_API_PORT,\
       \"http.host\":\"$CYFACE_API_HOST\",\
-      \"http.endpoint\":\"$CYFACE_API_ENDPOINT\",\
       \"metrics.enabled\":$METRICS_ENABLED,\
 	    \"upload.expiration\":$UPLOAD_EXPIRATION_TIME_MILLIS,\
 	    \"measurement.payload.limit\":$MEASUREMENT_PAYLOAD_LIMIT_BYTES,\
@@ -214,7 +208,7 @@ waitForDependency() {
 
 startApi() {
   echo
-  echo "Starting $SERVICE_NAME at $CYFACE_API_HOST:$CYFACE_API_PORT$CYFACE_API_ENDPOINT"
+  echo "Starting $SERVICE_NAME at $CYFACE_API_HOST:$CYFACE_API_PORT"
   java -Dvertx.cacheDirBase=/tmp/vertx-cache \
       -Dlogback.configurationFile=/app/logback.xml \
       -jar $JAR_FILE \

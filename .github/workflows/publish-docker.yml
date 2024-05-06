@@ -6,7 +6,7 @@
 #
 # author: Armin Schnabel
 # since: 1.0.0
-# version: 1.0.5
+# version: 1.0.6
 name: (Test) Publish docker images
 
 on:
@@ -21,7 +21,7 @@ on:
 
 # Specify JARs version here.
 env:
-  JARS_VERSION: '7.1.2'
+  JARS_VERSION: '7.1.3'
 
 jobs:
   publish:
