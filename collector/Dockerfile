@@ -14,8 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with the Cyface Data Collector. If not, see <http://www.gnu.org/licenses/>.
-#
-# Version 1.0.2
 
 FROM eclipse-temurin:17-jre
 MAINTAINER Cyface GmbH <mail@cyface.de>

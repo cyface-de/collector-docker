@@ -10,7 +10,7 @@ See https://github.com/cyface-de/data-collector#release-a-new-version[Cyface Col
 * After pushing the release tag to Github the CI automatically builds the artifacts and marks the release on Github
 
 ## Licensing
-Copyright 2018-2023 Cyface GmbH
+Copyright 2018-2024 Cyface GmbH
 
 This file is part of the Cyface Data Collector.
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018-2023 Cyface GmbH
+# Copyright 2018-2024 Cyface GmbH
 # 
 # This file is part of the Cyface Data Collector.
 #
@@ -17,7 +17,6 @@
 #  along with the Cyface Data Collector.  If not, see <http://www.gnu.org/licenses/>.
 #
 # author: Armin Schnabel
-# Version 1.3.0
 
 DEFAULT_API_PORT="8080"
 JAR_FILE="collector-all.jar"

@@ -1,12 +1,10 @@
-# Copyright (C) 2019-2023 Cyface GmbH - All Rights Reserved
+# Copyright (C) 2019-2024 Cyface GmbH - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential.
 #
 # Pulls the required artifacts to build and publish the Docker images.
 #
 # author: Armin Schnabel
-# since: 1.0.0
-# version: 1.0.6
 name: (Test) Publish docker images
 
 on:
