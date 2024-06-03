@@ -19,7 +19,13 @@
 # author: Armin Schnabel
 
 DEFAULT_API_PORT="8080"
+DEFAULT_OAUTH_TENANT="rfr"
+DEFAULT_OAUTH_CLIENT="collector"
+DEFAULT_OAUTH_CALLBACK="http://localhost:8080/callback"
+DEFAULT_OAUTH_SITE="https://auth.cyface.de:8443/realms/{tenant}"
+DEFAULT_DATABASE_NAME="cyface"
 JAR_FILE="collector-all.jar"
+
 SERVICE_NAME="Cyface Collector API"
 
 main() {
@@ -29,6 +35,36 @@ main() {
   loadConfig
   waitForDependency "mongo" 27017
   startApi
+}
+
+loadAuthParameters() {
+  if [ -z "$CYFACE_AUTH_TYPE" ]; then
+    CYFACE_AUTH_TYPE="oauth"
+  fi
+  if [ -z "$CYFACE_OAUTH_CALLBACK" ]; then
+    CYFACE_OAUTH_CALLBACK=$DEFAULT_OAUTH_CALLBACK
+  fi
+  if [ -z "$CYFACE_OAUTH_CLIENT" ]; then
+    CYFACE_OAUTH_CLIENT=$DEFAULT_OAUTH_CLIENT
+  fi
+
+  if [ -z CYFACE_OAUTH_SECRET ]; then
+    echo "Unable to find OAuth client secret. Please set the environment variable CYFACE_OAUTH_SECRET to an appropriate value! API will not start!"
+    exit 1
+  fi
+
+  if [ -z "$CYFACE_OAUTH_SITE" ]; then
+    CYFACE_OAUTH_SITE=$DEFAULT_OAUTH_SITE
+  fi
+  if [ -z "$CYFACE_OAUTH_TENANT" ]; then
+    CYFACE_OAUTH_TENANT=$DEFAULT_OAUTH_TENANT
+  fi
+
+  echo "Using Auth type: $CYFACE_AUTH_TYPE"
+  echo "Using OAuth callback $CYFACE_OAUTH_CALLBACK"
+  echo "Using OAuth client $CYFACE_OAUTH_CLIENT"
+  echo "Using OAuth site $CYFACE_OAUTH_SITE"
+  echo "Using OAuth tenant $CYFACE_OAUTH_TENANT"
 }
 
 loadApiParameters() {
@@ -48,36 +84,6 @@ loadApiParameters() {
     echo "Unable to find API Endpoint. Please set the environment variable CYFACE_API_ENDPOINT to an appropriate value! API will not start!"
     exit 1
   fi
-}
-
-loadAuthParameters() {
-  if [ -z "$CYFACE_AUTH_TYPE" ]; then
-    CYFACE_AUTH_TYPE="oauth"
-  fi
-  if [ -z "$CYFACE_OAUTH_CALLBACK" ]; then
-    CYFACE_OAUTH_CALLBACK="http://localhost:8080/callback"
-  fi
-  if [ -z "$CYFACE_OAUTH_CLIENT" ]; then
-    CYFACE_OAUTH_CLIENT="collector"
-  fi
-
-  if [ -z CYFACE_OAUTH_SECRET ]; then
-    echo "Unable to find OAuth client secret. Please set the environment variable CYFACE_OAUTH_SECRET to an appropriate value! API will not start!"
-    exit 1
-  fi
-
-  if [ -z "$CYFACE_OAUTH_SITE" ]; then
-    CYFACE_OAUTH_SITE="https://auth.cyface.de:8443/realms/{tenant}"
-  fi
-  if [ -z "$CYFACE_OAUTH_TENANT" ]; then
-    CYFACE_OAUTH_TENANT="rfr"
-  fi
-
-  echo "Using Auth type: $CYFACE_AUTH_TYPE"
-  echo "Using OAuth callback $CYFACE_OAUTH_CALLBACK"
-  echo "Using OAuth client $CYFACE_OAUTH_CLIENT"
-  echo "Using OAuth site $CYFACE_OAUTH_SITE"
-  echo "Using OAuth tenant $CYFACE_OAUTH_TENANT"
 }
 
 loadCollectorParameters() {
@@ -164,9 +170,9 @@ loadCollectorParameters() {
 loadConfig() {
   CONFIG="{\
       \"mongo.db\":{\
-          \"db_name\":\"cyface\",\
+          \"db_name\":\"$DEFAULT_DATABASE_NAME\",\
           \"connection_string\":\"mongodb://mongo:27017\",\
-          \"data_source_name\":\"cyface\"\
+          \"data_source_name\":\"$DEFAULT_DATABASE_NAME\"\
       },\
       \"http.port\":$CYFACE_API_PORT,\
       \"http.host\":\"$CYFACE_API_HOST\",\
