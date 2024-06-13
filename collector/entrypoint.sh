@@ -191,8 +191,7 @@ loadConfig() {
   }"
 }
 
-# Parameter 1: Name of the Docker Container of the dependency to wait for
-# Parameter 2: Internal Docker port of the dependency to wait for
+# Parameter 1: URL to the service to wait for
 waitForDependency() {
   local URL="$1"
 
