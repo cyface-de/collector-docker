@@ -195,7 +195,6 @@ loadConfig() {
 waitForDependency() {
   local URL="$1"
 
-  URL="https://auth.cyface.de:8443/realms/{tenant}"
   HOST_PORT=$(awk -F/ '{print $3}' <<<"$URL")
   HOST_PORT_ARRAY=($(echo "$HOST_PORT" | tr ":" "\n"))
   local host=${HOST_PORT_ARRAY[0]}
