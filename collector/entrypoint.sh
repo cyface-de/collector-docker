@@ -33,7 +33,8 @@ main() {
   loadApiParameters
   loadCollectorParameters
   loadConfig
-  waitForDependency "mongo" 27017
+  waitForDependency "mongo:27017"
+  waitForDependency "$CYFACE_OAUTH_SITE"
   startApi
 }
 
@@ -190,12 +191,16 @@ loadConfig() {
   }"
 }
 
-# Parameter 1: Name of the Docker Container of the dependency to wait for
-# Parameter 2: Internal Docker port of the dependency to wait for
+# Parameter 1: URL to the service to wait for
 waitForDependency() {
-  local service="$1"
-  local port="$2"
-  echo && echo "Waiting for $service:$port to start..."
+  local URL="$1"
+
+  HOST_PORT=$(awk -F/ '{print $3}' <<<"$URL")
+  HOST_PORT_ARRAY=($(echo "$HOST_PORT" | tr ":" "\n"))
+  local host=${HOST_PORT_ARRAY[0]}
+  local port=${HOST_PORT_ARRAY[1]}
+
+  echo && echo "Waiting for $host:$port to start..."
 
   local attempts=0
   local max_attempts=10
@@ -205,15 +210,15 @@ waitForDependency() {
     ((attempts++))
     echo "Attempt $attempts"
 
-    if nc -z "$service" "$port" > /dev/null 2>&1; then
-      echo "$service is up!"
+    if nc -z "$host" "$port" > /dev/null 2>&1; then
+      echo "$host is up!"
       return 0
     else
       sleep "$sleep_duration"
     fi
   done
 
-  echo "Unable to find $service:$port after $max_attempts attempts! API will not start."
+  echo "Unable to find $host:$port after $max_attempts attempts! API will not start."
   exit 1
 }
 
