@@ -195,10 +195,21 @@ loadConfig() {
 waitForDependency() {
   local URL="$1"
 
-  HOST_PORT=$(awk -F/ '{print $3}' <<<"$URL")
-  HOST_PORT_ARRAY=($(echo "$HOST_PORT" | tr ":" "\n"))
-  local host=${HOST_PORT_ARRAY[0]}
-  local port=${HOST_PORT_ARRAY[1]}
+  local scheme=$(echo $URL | awk -F[/:] '{print $1}')
+  local host=$(echo $URL | awk -F[/:] '{if ($1 ~ /http/ || $1 ~ /https/) print $4; else print $1}')
+  local port=$(echo $URL | awk -F[/:] '{if ($1 ~ /http/ || $1 ~ /https/) print $5; else print $2}')
+
+  # Set Port to default if not specified by URL
+  if [ -z "$port" ]
+  then
+    if [ "$scheme" == "http" ]
+    then
+      port=80
+    elif [ "$scheme" == "https" ]
+    then
+      port=443
+    fi
+  fi
 
   echo && echo "Waiting for $host:$port to start..."
 
@@ -207,7 +218,7 @@ waitForDependency() {
   local sleep_duration=5s
 
   while [ "$attempts" -lt "$max_attempts" ]; do
-    ((attempts++))
+    attempts=$((attempts+1))
     echo "Attempt $attempts"
 
     if nc -z "$host" "$port" > /dev/null 2>&1; then
