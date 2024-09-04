@@ -152,7 +152,8 @@ loadCollectorParameters() {
       \"project-identifier\":\"$STORAGE_PROJECT_IDENTIFIER\",\
       \"bucket-name\":\"$STORAGE_BUCKET_NAME\",\
       \"credentials-file\":\"$STORAGE_CREDENTIALS_FILE\",\
-      \"collection-name\":\"$STORAGE_COLLECTION_NAME\"\
+      \"collection-name\":\"$STORAGE_COLLECTION_NAME\",\
+      \"buffer-size\": 500000\
     }"
 
   else
