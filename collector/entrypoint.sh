@@ -40,10 +40,12 @@ loadAuthParameters() {
   if [ -z "$CYFACE_AUTH_TYPE" ]; then
     CYFACE_AUTH_TYPE="oauth"
   fi
+
   if [ -z "$CYFACE_OAUTH_CALLBACK" ]; then
     echo "Unable to find OAuth callback url. Please set the environment variable CYFACE_OAUTH_CALLBACK to an appropriate value! API will not start!"
     exit 1
   fi
+
   if [ -z "$CYFACE_OAUTH_CLIENT" ]; then
     CYFACE_OAUTH_CLIENT=$DEFAULT_OAUTH_CLIENT
   fi
@@ -53,10 +55,11 @@ loadAuthParameters() {
     exit 1
   fi
 
-  if [ -z "$CYFACE_OAUTH_SITE" ]; thenthen
+  if [ -z "$CYFACE_OAUTH_SITE" ]; then
     echo "Unable to find OAuth site url. Please set the environment variable CYFACE_OAUTH_SITE to an appropriate value! API will not start!"
     exit 1
   fi
+
   if [ -z "$CYFACE_OAUTH_TENANT" ]; then
     CYFACE_OAUTH_TENANT=$DEFAULT_OAUTH_TENANT
   fi
