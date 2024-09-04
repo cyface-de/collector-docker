@@ -21,8 +21,6 @@
 DEFAULT_API_PORT="8080"
 DEFAULT_OAUTH_TENANT="rfr"
 DEFAULT_OAUTH_CLIENT="collector"
-DEFAULT_OAUTH_CALLBACK="http://localhost:8080/callback"
-DEFAULT_OAUTH_SITE="https://auth.cyface.de:8443/realms/{tenant}"
 DEFAULT_DATABASE_NAME="cyface"
 JAR_FILE="collector-all.jar"
 
@@ -43,7 +41,8 @@ loadAuthParameters() {
     CYFACE_AUTH_TYPE="oauth"
   fi
   if [ -z "$CYFACE_OAUTH_CALLBACK" ]; then
-    CYFACE_OAUTH_CALLBACK=$DEFAULT_OAUTH_CALLBACK
+    echo "Unable to find OAuth callback url. Please set the environment variable CYFACE_OAUTH_CALLBACK to an appropriate value! API will not start!"
+    exit 1
   fi
   if [ -z "$CYFACE_OAUTH_CLIENT" ]; then
     CYFACE_OAUTH_CLIENT=$DEFAULT_OAUTH_CLIENT
@@ -54,8 +53,9 @@ loadAuthParameters() {
     exit 1
   fi
 
-  if [ -z "$CYFACE_OAUTH_SITE" ]; then
-    CYFACE_OAUTH_SITE=$DEFAULT_OAUTH_SITE
+  if [ -z "$CYFACE_OAUTH_SITE" ]; thenthen
+    echo "Unable to find OAuth site url. Please set the environment variable CYFACE_OAUTH_SITE to an appropriate value! API will not start!"
+    exit 1
   fi
   if [ -z "$CYFACE_OAUTH_TENANT" ]; then
     CYFACE_OAUTH_TENANT=$DEFAULT_OAUTH_TENANT
