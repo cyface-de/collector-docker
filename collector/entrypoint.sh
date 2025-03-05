@@ -37,38 +37,57 @@ main() {
 }
 
 loadAuthParameters() {
+  # Auth type
   if [ -z "$CYFACE_AUTH_TYPE" ]; then
     CYFACE_AUTH_TYPE="oauth"
   fi
 
-  if [ -z "$CYFACE_OAUTH_CALLBACK" ]; then
-    echo "Unable to find OAuth callback url. Please set the environment variable CYFACE_OAUTH_CALLBACK to an appropriate value! API will not start!"
+  # Auth Configuration
+  if [ "$CYFACE_AUTH_TYPE" == "oauth" ]; then
+
+    if [ -z "$CYFACE_OAUTH_CALLBACK" ]; then
+      echo "Unable to find OAuth callback url. Please set the environment variable CYFACE_OAUTH_CALLBACK to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    if [ -z "$CYFACE_OAUTH_CLIENT" ]; then
+      CYFACE_OAUTH_CLIENT=$DEFAULT_OAUTH_CLIENT
+    fi
+
+    if [ -z CYFACE_OAUTH_SECRET ]; then
+      echo "Unable to find OAuth client secret. Please set the environment variable CYFACE_OAUTH_SECRET to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    if [ -z "$CYFACE_OAUTH_SITE" ]; then
+      echo "Unable to find OAuth site url. Please set the environment variable CYFACE_OAUTH_SITE to an appropriate value! API will not start!"
+      exit 1
+    fi
+
+    if [ -z "$CYFACE_OAUTH_TENANT" ]; then
+      CYFACE_OAUTH_TENANT=$DEFAULT_OAUTH_TENANT
+    fi
+
+    AUTH_CONFIGURATION="{\
+      \"type\":\"$CYFACE_AUTH_TYPE\",\
+      \"callback\":\"$CYFACE_OAUTH_CALLBACK\",\
+      \"client\":\"$CYFACE_OAUTH_CLIENT\",\
+      \"secret\":\"$CYFACE_OAUTH_SECRET\",\
+      \"site\":\"$CYFACE_OAUTH_SITE\",\
+      \"tenant\":\"$CYFACE_OAUTH_TENANT\"\
+    }"
+
+    # Don't log the whole AUTH_CONFIGURATION to not log secrets.
+    echo "Using Auth type: $CYFACE_AUTH_TYPE"
+    echo "Using OAuth callback $CYFACE_OAUTH_CALLBACK"
+    echo "Using OAuth client $CYFACE_OAUTH_CLIENT"
+    echo "Using OAuth site $CYFACE_OAUTH_SITE"
+    echo "Using OAuth tenant $CYFACE_OAUTH_TENANT"
+
+  else
+    echo "Unsupported Auth Type $CYFACE_AUTH_TYPE. Please set the environment variable to an appropriate value! API will not start!"
     exit 1
   fi
-
-  if [ -z "$CYFACE_OAUTH_CLIENT" ]; then
-    CYFACE_OAUTH_CLIENT=$DEFAULT_OAUTH_CLIENT
-  fi
-
-  if [ -z CYFACE_OAUTH_SECRET ]; then
-    echo "Unable to find OAuth client secret. Please set the environment variable CYFACE_OAUTH_SECRET to an appropriate value! API will not start!"
-    exit 1
-  fi
-
-  if [ -z "$CYFACE_OAUTH_SITE" ]; then
-    echo "Unable to find OAuth site url. Please set the environment variable CYFACE_OAUTH_SITE to an appropriate value! API will not start!"
-    exit 1
-  fi
-
-  if [ -z "$CYFACE_OAUTH_TENANT" ]; then
-    CYFACE_OAUTH_TENANT=$DEFAULT_OAUTH_TENANT
-  fi
-
-  echo "Using Auth type: $CYFACE_AUTH_TYPE"
-  echo "Using OAuth callback $CYFACE_OAUTH_CALLBACK"
-  echo "Using OAuth client $CYFACE_OAUTH_CLIENT"
-  echo "Using OAuth site $CYFACE_OAUTH_SITE"
-  echo "Using OAuth tenant $CYFACE_OAUTH_TENANT"
 }
 
 loadApiParameters() {
@@ -186,12 +205,7 @@ loadConfig() {
 	    \"upload.expiration\":$UPLOAD_EXPIRATION_TIME_MILLIS,\
 	    \"measurement.payload.limit\":$MEASUREMENT_PAYLOAD_LIMIT_BYTES,\
       \"storage-type\":$STORAGE_CONFIGURATION,\
-      \"auth-type\":\"$CYFACE_AUTH_TYPE\",
-      \"oauth.callback\":\"$CYFACE_OAUTH_CALLBACK\",\
-      \"oauth.client\":\"$CYFACE_OAUTH_CLIENT\",\
-      \"oauth.secret\":\"$CYFACE_OAUTH_SECRET\",\
-      \"oauth.site\":\"$CYFACE_OAUTH_SITE\",\
-      \"oauth.tenant\":\"$CYFACE_OAUTH_TENANT\"\
+      \"auth\":$AUTH_CONFIGURATION\
   }"
 }
 
