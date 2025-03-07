@@ -32,7 +32,9 @@ main() {
   loadCollectorParameters
   loadConfig
   waitForDependency "mongo:27017"
-  waitForDependency "$CYFACE_OAUTH_SITE"
+  if [ "$CYFACE_AUTH_TYPE" == "oauth" ]; then
+    waitForDependency "$CYFACE_OAUTH_SITE"
+  fi
   startApi
 }
 
