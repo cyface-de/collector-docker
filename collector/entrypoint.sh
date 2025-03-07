@@ -84,6 +84,18 @@ loadAuthParameters() {
     echo "Using OAuth site $CYFACE_OAUTH_SITE"
     echo "Using OAuth tenant $CYFACE_OAUTH_TENANT"
 
+  elif [ "$CYFACE_AUTH_TYPE" == "jwt" ]; then
+
+    if [ -z "$CYFACE_JWK" ]; then
+      echo "Unable to find the JWK. Please set the environment variable CYFACE_JWK to an appropriate Java Web Key! API will not start!"
+      exit 1
+    fi
+
+    AUTH_CONFIGURATION="{\
+	    \"type\":\"$CYFACE_AUTH_TYPE\",\
+	    \"jwk\":\"$CYFACE_JWK\"\
+    }"
+
   else
     echo "Unsupported Auth Type $CYFACE_AUTH_TYPE. Please set the environment variable to an appropriate value! API will not start!"
     exit 1
