@@ -235,10 +235,6 @@ loadConfig() {
       \"storage-type\":$STORAGE_CONFIGURATION,\
       \"auth\":$AUTH_CONFIGURATION\
   }"
-
-  # Don't do this in a production environment as it might show secrets not intended to be logged out.
-  # Since this is only used during development it is ok to log all the config here.
-  echo "Starting Collector with Configuration: \n$CONFIG"
 }
 
 # Parameter 1: URL to the service to wait for
