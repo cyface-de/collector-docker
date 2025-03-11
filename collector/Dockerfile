@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with the Cyface Data Collector. If not, see <http://www.gnu.org/licenses/>.
 
-FROM eclipse-temurin:17-jre
-MAINTAINER Cyface GmbH <mail@cyface.de>
+FROM eclipse-temurin:23-jre
+LABEL "maintainer"="Cyface GmbH <mail@cyface.de>"
 
 # Create user. Unproblematic default id (wikipedia.org/wiki/User_identifier)
 ARG USER_ID=9999

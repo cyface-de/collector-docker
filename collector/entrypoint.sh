@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018-2024 Cyface GmbH
+# Copyright 2018-2025 Cyface GmbH
 # 
 # This file is part of the Cyface Data Collector.
 #
@@ -17,6 +17,7 @@
 #  along with the Cyface Data Collector.  If not, see <http://www.gnu.org/licenses/>.
 #
 # author: Armin Schnabel
+# author: Klemens Muthmann
 
 DEFAULT_API_PORT="8080"
 DEFAULT_OAUTH_TENANT="rfr"
@@ -31,8 +32,10 @@ main() {
   loadApiParameters
   loadCollectorParameters
   loadConfig
-  waitForDependency "mongo:27017"
-  waitForDependency "$CYFACE_OAUTH_SITE"
+  waitForDependency "$MONGO_HOST:$MONGO_PORT"
+  if [ "$CYFACE_AUTH_TYPE" == "oauth" ]; then
+    waitForDependency "$CYFACE_OAUTH_SITE"
+  fi
   startApi
 }
 
@@ -42,6 +45,7 @@ loadAuthParameters() {
     CYFACE_AUTH_TYPE="oauth"
   fi
 
+  echo "Using Auth Type: $CYFACE_AUTH_TYPE"
   # Auth Configuration
   if [ "$CYFACE_AUTH_TYPE" == "oauth" ]; then
 
@@ -54,7 +58,7 @@ loadAuthParameters() {
       CYFACE_OAUTH_CLIENT=$DEFAULT_OAUTH_CLIENT
     fi
 
-    if [ -z CYFACE_OAUTH_SECRET ]; then
+    if [ -z "$CYFACE_OAUTH_SECRET" ]; then
       echo "Unable to find OAuth client secret. Please set the environment variable CYFACE_OAUTH_SECRET to an appropriate value! API will not start!"
       exit 1
     fi
@@ -83,6 +87,18 @@ loadAuthParameters() {
     echo "Using OAuth client $CYFACE_OAUTH_CLIENT"
     echo "Using OAuth site $CYFACE_OAUTH_SITE"
     echo "Using OAuth tenant $CYFACE_OAUTH_TENANT"
+
+  elif [ "$CYFACE_AUTH_TYPE" == "jwt" ]; then
+
+    if [ -z "$CYFACE_JWK" ]; then
+      echo "Unable to find the JWK. Please set the environment variable CYFACE_JWK to an appropriate Java Web Key! API will not start!"
+      exit 1
+    fi
+
+    AUTH_CONFIGURATION="{\
+	    \"type\":\"$CYFACE_AUTH_TYPE\",\
+	    \"jwk\":$CYFACE_JWK\
+    }"
 
   else
     echo "Unsupported Auth Type $CYFACE_AUTH_TYPE. Please set the environment variable to an appropriate value! API will not start!"
@@ -192,10 +208,22 @@ loadCollectorParameters() {
 
 # Injects the database parameters
 loadConfig() {
+  if [ -z $MONGO_HOST ]; then
+    MONGO_HOST="mongo"
+  else 
+    echo "Setting Mongo Host to $MONGO_HOST"
+  fi
+
+  if [ -z $MONGO_PORT ]; then
+    MONGO_PORT="27017"
+  else 
+    echo "Setting Mongo Port to $MONGO_PORT"
+  fi
+
   CONFIG="{\
       \"mongo.db\":{\
           \"db_name\":\"$DEFAULT_DATABASE_NAME\",\
-          \"connection_string\":\"mongodb://mongo:27017\",\
+          \"connection_string\":\"mongodb://$MONGO_HOST:$MONGO_PORT\",\
           \"data_source_name\":\"$DEFAULT_DATABASE_NAME\"\
       },\
       \"http.port\":$CYFACE_API_PORT,\
