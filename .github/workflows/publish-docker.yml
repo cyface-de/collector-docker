@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # --------------------- Data-Collector ---------------------
     - name: data-collector - Download JAR
@@ -37,7 +37,7 @@ jobs:
         mv collector-all.jar collector/collector-all.jar
 
     - name: collector - (Test) Publish Docker Image
-      uses: elgohr/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@v5
       with:
         name: cyface-de/collector-docker/collector-docker
         username: ${{ github.actor }}
