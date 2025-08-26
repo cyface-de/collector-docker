@@ -237,30 +237,47 @@ loadConfig() {
   }"
 }
 
+# URL parsing (handles http(s) with/without port and paths
 # Parameter 1: URL to the service to wait for
 waitForDependency() {
   local URL="$1"
+  
+  local scheme=""
+  local host=""
+  local port=""
 
-  local scheme=$(echo $URL | awk -F[/:] '{print $1}')
-  local host=$(echo $URL | awk -F[/:] '{if ($1 ~ /http/ || $1 ~ /https/) print $4; else print $1}')
-  local port=$(echo $URL | awk -F[/:] '{if ($1 ~ /http/ || $1 ~ /https/) print $5; else print $2}')
+  # Match:
+  #  1) http(s)://host[:port][/...]
+  #  2) host:port
+  #  3) plain host
+  if [[ "$URL" =~ ^(https?)://([^/:]+)(:([0-9]+))?(/.*)?$ ]]; then
+    scheme="${BASH_REMATCH[1]}"
+    host="${BASH_REMATCH[2]}"
+    port="${BASH_REMATCH[4]}"
+  elif [[ "$URL" =~ ^\[?[0-9a-fA-F:.]+\]?:[0-9]+$ ]]; then
+    # Basic IPv6/IPv4 host:port (e.g., [2001:db8::1]:443 or 127.0.0.1:27017)
+    host="${URL%:*}"
+    port="${URL##*:}"
+    # strip brackets from IPv6 if present
+    host="${host#[}"
+    host="${host%]}"
+  elif [[ "$URL" =~ ^([^:]+):([0-9]+)$ ]]; then
+    host="${BASH_REMATCH[1]}"
+    port="${BASH_REMATCH[2]}"
+  else
+    host="$URL"
+  fi
 
-  # Strip possible path from host if no port was found
-  host=$(echo "$host" | cut -d'/' -f1)
-
-  # Set Port to default if not specified by URL
-  if [ -z "$port" ]
-  then
-    if [ "$scheme" == "http" ]
-    then
+  # Default port by scheme if missing
+  if [ -z "$port" ]; then
+    if [ "$scheme" = "http" ]; then
       port=80
-    elif [ "$scheme" == "https" ]
-    then
+    elif [ "$scheme" = "https" ]; then
       port=443
     fi
   fi
 
-  echo && echo "Waiting for $host:$port to start..."
+  echo && echo "Waiting for $host:${port:-?} to start..."
 
   local attempts=0
   local max_attempts=10
@@ -269,13 +286,11 @@ waitForDependency() {
   while [ "$attempts" -lt "$max_attempts" ]; do
     attempts=$((attempts+1))
     echo "Attempt $attempts"
-
-    if nc -z "$host" "$port" > /dev/null 2>&1; then
+    if nc -z -w 2 "$host" "$port" > /dev/null 2>&1; then
       echo "$host is up!"
       return 0
-    else
-      sleep "$sleep_duration"
     fi
+    sleep "$sleep_duration"
   done
 
   echo "Unable to find $host:$port after $max_attempts attempts! API will not start."
