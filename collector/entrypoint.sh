@@ -245,6 +245,9 @@ waitForDependency() {
   local host=$(echo $URL | awk -F[/:] '{if ($1 ~ /http/ || $1 ~ /https/) print $4; else print $1}')
   local port=$(echo $URL | awk -F[/:] '{if ($1 ~ /http/ || $1 ~ /https/) print $5; else print $2}')
 
+  # Strip possible path from host if no port was found
+  host=$(echo "$host" | cut -d'/' -f1)
+
   # Set Port to default if not specified by URL
   if [ -z "$port" ]
   then
