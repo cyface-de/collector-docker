@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2018-2025 Cyface GmbH
+# Copyright 2018-2026 Cyface GmbH
 # 
 # This file is part of the Cyface Data Collector.
 #
@@ -32,7 +32,7 @@ main() {
   loadApiParameters
   loadCollectorParameters
   loadConfig
-  waitForDependency "$MONGO_HOST:$MONGO_PORT"
+  waitForMongoDependencies
   if [ "$CYFACE_AUTH_TYPE" == "oauth" ]; then
     waitForDependency "$CYFACE_OAUTH_SITE"
   fi
@@ -208,22 +208,61 @@ loadCollectorParameters() {
 
 # Injects the database parameters
 loadConfig() {
-  if [ -z $MONGO_HOST ]; then
-    MONGO_HOST="mongo"
-  else 
-    echo "Setting Mongo Host to $MONGO_HOST"
+  if [ -z "$MONGO_HOSTS" ]; then
+    MONGO_HOSTS="mongo"
   fi
 
-  if [ -z $MONGO_PORT ]; then
-    MONGO_PORT="27017"
-  else 
-    echo "Setting Mongo Port to $MONGO_PORT"
+  if [ -z "$MONGO_PORTS" ]; then
+    MONGO_PORTS="27017"
   fi
+
+  # Split into arrays
+  IFS=',' read -ra HOSTS_ARRAY <<< "$MONGO_HOSTS"
+  IFS=',' read -ra PORTS_ARRAY <<< "$MONGO_PORTS"
+
+  # If only one port is given but multiple hosts, apply the same port to all
+  if [ "${#PORTS_ARRAY[@]}" -eq 1 ] && [ "${#HOSTS_ARRAY[@]}" -gt 1 ]; then
+    local single_port="${PORTS_ARRAY[0]}"
+    PORTS_ARRAY=()
+    for _ in "${HOSTS_ARRAY[@]}"; do
+      PORTS_ARRAY+=("$single_port")
+    done
+  fi
+
+  # Validate that host and port counts match
+  if [ "${#HOSTS_ARRAY[@]}" -ne "${#PORTS_ARRAY[@]}" ]; then
+    echo "MONGO_HOSTS has ${#HOSTS_ARRAY[@]} entries but MONGO_PORTS has ${#PORTS_ARRAY[@]}. They must match (or MONGO_PORTS must be a single value). API will not start!"
+    exit 1
+  fi
+
+  # Build connection string: mongodb://host1:port1,host2:port2,...
+  local connection_members=""
+  for i in "${!HOSTS_ARRAY[@]}"; do
+    local h="${HOSTS_ARRAY[$i]}"
+    local p="${PORTS_ARRAY[$i]}"
+    # Trim whitespace
+    h="$(echo -e "$h" | tr -d '[:space:]')"
+    p="$(echo -e "$p" | tr -d '[:space:]')"
+    if [ -n "$connection_members" ]; then
+      connection_members="${connection_members},"
+    fi
+    connection_members="${connection_members}${h}:${p}"
+  done
+
+  local mongo_connection_string="mongodb://${connection_members}"
+
+  # Append replica set query parameter if set
+  if [ -n "$MONGO_REPLICA_SET" ]; then
+    mongo_connection_string="${mongo_connection_string}/?replicaSet=${MONGO_REPLICA_SET}"
+    echo "Using Mongo Replica Set: $MONGO_REPLICA_SET"
+  fi
+
+  echo "Using Mongo connection string: $mongo_connection_string"
 
   CONFIG="{\
       \"mongo.db\":{\
           \"db_name\":\"$DEFAULT_DATABASE_NAME\",\
-          \"connection_string\":\"mongodb://$MONGO_HOST:$MONGO_PORT\",\
+          \"connection_string\":\"$mongo_connection_string\",\
           \"data_source_name\":\"$DEFAULT_DATABASE_NAME\"\
       },\
       \"http.port\":$CYFACE_API_PORT,\
@@ -235,6 +274,29 @@ loadConfig() {
       \"storage-type\":$STORAGE_CONFIGURATION,\
       \"auth\":$AUTH_CONFIGURATION\
   }"
+}
+
+# Wait for all MongoDB replica set members to become reachable.
+waitForMongoDependencies() {
+  IFS=',' read -ra HOSTS_ARRAY <<< "$MONGO_HOSTS"
+  IFS=',' read -ra PORTS_ARRAY <<< "$MONGO_PORTS"
+
+  # Expand single port to all hosts (same logic as in loadConfig)
+  if [ "${#PORTS_ARRAY[@]}" -eq 1 ] && [ "${#HOSTS_ARRAY[@]}" -gt 1]; then
+    local single_port="${PORTS_ARRAY[0]}"
+    PORTS_ARRAY=()
+    for _ in "${HOSTS_ARRAY[@]}"; do
+      PORTS_ARRAY+=("$single_port")
+    done
+  fi  
+
+  for i in "${!HOSTS_ARRAY[@]}"; do
+    local h="${HOSTS_ARRAY[$i]}"
+    local p="${PORTS_ARRAY[$i]}"
+    h="$(echo -e "$h" | tr -d '[:space:]')"
+    p="$(echo -e "$p" | tr -d '[:space:]')"
+    waitForDependency "${h}:${p}"
+  done
 }
 
 # URL parsing (handles http(s) with/without port and paths
