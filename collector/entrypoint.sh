@@ -107,10 +107,6 @@ loadAuthParameters() {
 }
 
 loadApiParameters() {
-  if [ -z "$CYFACE_API_STD_OUT_FILE" ]; then
-    CYFACE_API_STD_OUT_FILE="/app/logs/collector-out.log"
-  fi
-
   if [ -z "$CYFACE_API_PORT" ]; then
     CYFACE_API_PORT=$DEFAULT_API_PORT
   fi
@@ -365,8 +361,7 @@ startApi() {
   java -Dvertx.cacheDirBase=/tmp/vertx-cache \
       -Dlogback.configurationFile=/app/logback.xml \
       -jar $JAR_FILE \
-      -conf "$CONFIG" \
-      &> $CYFACE_API_STD_OUT_FILE
+      -conf "$CONFIG"
   echo "API started or failed. Checking logs might give more insights."
 }
 
