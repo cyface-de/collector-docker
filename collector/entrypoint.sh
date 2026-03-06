@@ -90,14 +90,18 @@ loadAuthParameters() {
 
   elif [ "$CYFACE_AUTH_TYPE" == "jwt" ]; then
 
-    if [ -z "$CYFACE_JWK" ]; then
-      echo "Unable to find the JWK. Please set the environment variable CYFACE_JWK to an appropriate Java Web Key! API will not start!"
+    if [ -n "$CYFACE_JWKS" ]; then
+      JWK_CONFIG="$CYFACE_JWKS"
+    elif [ -n "$CYFACE_JWK" ]; then
+      JWK_CONFIG="[$CYFACE_JWK]"
+    else
+      echo "Unable to find JWK(s). Set CYFACE_JWKS (JSON array) or CYFACE_JWK (single JSON object)! API will not start!"
       exit 1
     fi
 
     AUTH_CONFIGURATION="{\
 	    \"type\":\"$CYFACE_AUTH_TYPE\",\
-	    \"jwk\":$CYFACE_JWK\
+	    \"jwks\":$JWK_CONFIG\
     }"
 
   else
