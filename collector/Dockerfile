@@ -1,4 +1,4 @@
-# Copyright 2018-2024 Cyface GmbH
+# Copyright 2018-2026 Cyface GmbH
 # 
 # This file is part of the Cyface Data Collector.
 # 
