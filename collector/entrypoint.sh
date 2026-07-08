@@ -362,7 +362,10 @@ waitForDependency() {
 startApi() {
   echo
   echo "Starting $SERVICE_NAME at $CYFACE_API_HOST:$CYFACE_API_PORT$CYFACE_API_ENDPOINT"
-  java -Dvertx.cacheDirBase=/tmp/vertx-cache \
+  # exec is important so the JVM replaces this shell as PID 1 and receives SIGTERM directly on "docker service update" / stop.
+  # The Vert.x Launcher's shutdown hook then runs vertx.close().
+  # Without exec, SIGTERM hit the shell (not the JVM), the node was SIGKILLED ungracefully, and its event-bus registrations lingered in surviving members until heartbeat timeout (~30s) -- causing "Not a member of the cluster" / 30s ReplyException timeouts on the clustered event bus right after rolling updates.
+  exec java -Dvertx.cacheDirBase=/tmp/vertx-cache \
       -Dlogback.configurationFile=/app/logback.xml \
       -jar $JAR_FILE \
       -conf "$CONFIG"
