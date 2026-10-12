@@ -1,63 +1,145 @@
-# Copyright (C) 2019-2025 Cyface GmbH - All Rights Reserved
+# Copyright (C) 2019-2026 Cyface GmbH - All Rights Reserved
 # Unauthorized copying of this file, via any medium is strictly prohibited
 # Proprietary and confidential.
 #
 # Pulls the required artifacts to build and publish the Docker images.
 #
 # author: Armin Schnabel
+#
+# NOTE: An organization-wide cleanup deletes old versions of the published packages each week.
+# See `.github/workflows/registry_cleanup.yml` in the repository `cyface-de/production`.
 name: (Test) Publish docker images
 
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
+      - '[0-9]*.[0-9]*.[0-9]*' # glob not reg-ex
+      - '[0-9]*.[0-9]*.[0-9]*-*'
     branches:
       - main
+      - 'release-*'
   pull_request:
     branches:
       - main
+      - 'release-*'
 
-# Specify JARs version here.
+# Explicit workflow permissions (as little as required). The `publish` job adds its write permissions.
+permissions:
+  contents: read
+
+# A new commit on a pull request stops the run of the previous commit
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
+  # Specify JARs version here.
   JARS_VERSION: '7.10.0'
+  # GitHub Container Registry. The image path is the same as before on `docker.pkg.github.com`.
+  IMAGE: ghcr.io/cyface-de/collector-docker/collector-docker
 
 jobs:
-  publish:
+  # Builds the image without a push, to test the workflow on branches and pull requests.
+  test:
+    # Only for branch pushes (assumes protected branches) and for PRs from this repo (not from forks).
+    if: >-
+      (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout commit
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
-    # --------------------- Data-Collector ---------------------
-    - name: data-collector - Download JAR
-      run: |
-        wget --user ${{ secrets.GH_PACKAGES_READ_ACCOUNT }} --password ${{ secrets.GH_PACKAGES_READ_TOKEN }} \
-          https://maven.pkg.github.com/cyface-de/data-collector/de/cyface/collector/${{ env.JARS_VERSION }}/collector-${{ env.JARS_VERSION }}-all.jar \
-          -O collector-all.jar
-        mv collector-all.jar collector/collector-all.jar
+      # --------------------- Data-Collector ---------------------
+      - name: data-collector - Download JAR
+        env:
+          # Secrets come through the environment, not through the script text
+          PACKAGES_USER: ${{ secrets.GH_PACKAGES_READ_ACCOUNT }}
+          PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
+        run: |
+          wget --user "$PACKAGES_USER" --password "$PACKAGES_TOKEN" \
+            "https://maven.pkg.github.com/cyface-de/data-collector/de/cyface/collector/${JARS_VERSION}/collector-${JARS_VERSION}-all.jar" \
+            -O collector/collector-all.jar
 
-    - name: collector - (Test) Publish Docker Image
-      uses: elgohr/Publish-Docker-Github-Action@v5
-      with:
-        name: cyface-de/collector-docker/collector-docker
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        registry: docker.pkg.github.com
-        tag_names: true
-        context: collector
-        # only push the Docker images if this is a release (to test workflow in PRs)
-        no_push: ${{ !(github.event_name == 'push' && contains(github.ref, 'refs/tags/')) }}
+      # Pinned to a commit SHA: a tag or branch of a third-party action can change
+      - name: collector - Build Docker Image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: collector
+          push: false
 
-    # --------------------- Mark Release-Tag on Github ---------------------
-    - name: Mark release on Github
-      if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-      uses: actions/create-release@v1
-      id: create_release
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
-        draft: false
-        # Release tags of format `1.2.3-beta1 / -alpha1 / -test1` are considered a pre-release
-        prerelease: ${{ contains(github.ref, 'test') || contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Builds and pushes the image and marks the tag as release.
+  publish:
+    # No fork protection needed: write permission needed to push tags, not allowed for forks
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write    # to create a release
+      packages: write    # to push the image
+
+    env:
+      # Never use `github.ref_name` directly in a script: a tag name can contain shell commands
+      TAG: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v7
+        with:
+          # Do not keep the write token on the runner after the checkout
+          persist-credentials: false
+
+      # --------------------- Data-Collector ---------------------
+      - name: data-collector - Download JAR
+        env:
+          # Secrets come through the environment, not through the script text
+          PACKAGES_USER: ${{ secrets.GH_PACKAGES_READ_ACCOUNT }}
+          PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
+        run: |
+          wget --user "$PACKAGES_USER" --password "$PACKAGES_TOKEN" \
+            "https://maven.pkg.github.com/cyface-de/data-collector/de/cyface/collector/${JARS_VERSION}/collector-${JARS_VERSION}-all.jar" \
+            -O collector/collector-all.jar
+
+      # The Docker actions are pinned to a commit SHA: a tag or branch of a third-party action can change
+      - name: Log in to the Container registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          # The image tag is the Git tag. No `latest` tag, as before.
+          tags: type=ref,event=tag
+          flavor: latest=false
+
+      - name: collector - Publish Docker Image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: collector
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # One image version for each tag, so that the registry cleanup can delete a complete version
+          provenance: false
+
+      # --------------------- Mark Release-Tag on Github ---------------------
+      # The message of the tag becomes the release notes.
+      - name: Mark release on Github
+        run: |
+          # A tag with a suffix, for example `1.2.3-beta1`, is a pre-release
+          case "$TAG" in *-*) PRERELEASE=--prerelease ;; *) PRERELEASE= ;; esac
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "$(git tag -l --format='%(contents)' "$TAG")" \
+            $PRERELEASE
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
