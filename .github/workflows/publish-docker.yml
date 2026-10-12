@@ -13,8 +13,8 @@ name: (Test) Publish docker images
 on:
   push:
     tags:
-      - '[0-9]*.[0-9]*.[0-9]*' # glob not reg-ex
-      - '[0-9]*.[0-9]*.[0-9]*-*'
+      # GitHub filter pattern, not a reg-ex: `+` means one or more of the previous character, `*` means any text
+      - '[0-9]+.[0-9]+.[0-9]+*'
     branches:
       - main
       - 'release-*'
@@ -70,6 +70,8 @@ jobs:
         with:
           context: collector
           push: false
+          # Same option as in the `publish` job
+          provenance: false
 
   # Builds and pushes the image and marks the tag as release.
   publish:
@@ -131,14 +133,14 @@ jobs:
           provenance: false
 
       # --------------------- Mark Release-Tag on Github ---------------------
-      # The message of the tag becomes the release notes.
+      # The message of the tag, without its first line, becomes the release notes.
       - name: Mark release on Github
         run: |
           # A tag with a suffix, for example `1.2.3-beta1`, is a pre-release
           case "$TAG" in *-*) PRERELEASE=--prerelease ;; *) PRERELEASE= ;; esac
           gh release create "$TAG" \
             --title "$TAG" \
-            --notes "$(git tag -l --format='%(contents)' "$TAG")" \
+            --notes "$(git tag -l --format='%(contents:body)' "$TAG")" \
             $PRERELEASE
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
