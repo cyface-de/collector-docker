@@ -34,7 +34,7 @@ concurrency:
 
 env:
   # Specify JARs version here.
-  JARS_VERSION: '7.10.0'
+  JARS_VERSION: '7.11.0'
   # GitHub Container Registry. The image path is the same as before on `docker.pkg.github.com`.
   IMAGE: ghcr.io/cyface-de/collector-docker/collector-docker
 
