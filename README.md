@@ -2,7 +2,7 @@
 
 Docker packaging for the Cyface Data Collector. There is no application code here: the `data-collector` repo builds the collector JAR, and the CI downloads it. This repo provides:
 
-- `collector/Dockerfile` -- packages the fat JAR into an image based on `eclipse-temurin:23-jre`. The container runs as the unprivileged user `user` (id 9999) and exposes port 8080.
+- `collector/Dockerfile` -- packages the fat JAR into an image based on `eclipse-temurin:21-jre`. The container runs as the unprivileged user `user` (id 9999) and exposes port 8080.
 - `collector/entrypoint.sh` -- shell script that assembles a JSON config from environment variables, waits for the dependencies (MongoDB, OAuth provider), then starts the Vert.x collector with `exec java`.
 - `.github/workflows/publish-docker.yml` -- CI workflow that downloads the JAR from GitHub Packages, builds the Docker image and publishes it on tags.
 
